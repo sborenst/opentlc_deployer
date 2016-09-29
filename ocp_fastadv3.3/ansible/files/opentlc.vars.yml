@@ -1,9 +1,9 @@
 log_file: "/root/.oselab.log"
-course_id: "ocp_fastadv3.3"
+course_id: ocp_fastadv3.3
 
-install_nfs: false
+install_nfs: true
 install_dns: true
-install_idm: true
-install_logging: true
-install_metrics: true
+install_idm: false
+install_logging: false
+install_metrics: false
 repo_version: 3.3

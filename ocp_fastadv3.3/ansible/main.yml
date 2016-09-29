@@ -54,7 +54,7 @@
     - debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
     - debug: msg="logging is {{install_logging}} metrics is {{install_metrics}} repo_version is {{repo_version}} "
     - name: install openshift utils
-      yum: nname="{{ item }}" state=present
+      yum: name="{{ item }}" state=present
       with_items:
           - atomic-openshift-clients
           - atomic-openshift-utils
@@ -98,7 +98,3 @@
       shell: "sed -i '/idm/s/^/#/' /etc/ansible/hosts && \
               sed -i '/htpasswd_auth/s/^#//' /etc/ansible/hosts"
       when: install_idm == "false"
-
-    - name: Run Ansible Installer for OpenShift
-      shell: "ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml 2>&1 | tee -a /root/.openshift.installer.log"
-      register: osinstalleroutput
