@@ -62,7 +62,7 @@ sed -i '/registry/s/^/#/' /etc/exports
 ## Step 2 - install openshift
 ################################################################################
 echo "---- Step 2 - install openshift"  2>&1 | tee -a $LOGFILE
-
+export HOME="/root"
 echo "ansible-playbook -i /etc/ansible/hosts /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml"  2>&1 | tee -a $LOGFILE
 ansible-playbook -i /etc/ansible/hosts /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml   2>&1 | tee -a $LOGFILE
 
