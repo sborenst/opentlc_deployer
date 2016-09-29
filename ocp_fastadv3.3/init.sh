@@ -164,7 +164,7 @@ chmod +x /root/.opentlc_deployer/${COURSE}/ansible/scripts/Demo_Deployment_Scrip
 echo "-- Finished running /root/.opentlc_deployer/${COURSE}/ansible/files/Demo_Deployment_Script.sh"  2>&1 | tee -a $LOGFILE
 fi
 
-fi
+
 echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
 
 cat << EOF >> /etc/motd

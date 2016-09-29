@@ -24,7 +24,7 @@ export COURSE=$2;
 #export COURSE="ocp_demo3.3"
 export METRICS="TRUE"
 export LOGGING="TRUE"
-
+export DATE=`date`
 
 ################################################################################
 ## Step 1 - Prepare environemnt and test that all hosts are up
@@ -124,6 +124,7 @@ if [ $LOGGING == "TRUE" ]
    oc project logging
    oc new-app logging-deployer-account-template
    oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
+   system:serviceaccount:logging:logging-deployer
    oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd
    oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd
    oc new-app logging-deployer-template --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install
@@ -164,7 +165,7 @@ chmod +x /root/.opentlc_deployer/${COURSE}/ansible/scripts/Demo_Deployment_Scrip
 echo "-- Finished running /root/.opentlc_deployer/${COURSE}/ansible/files/Demo_Deployment_Script.sh"  2>&1 | tee -a $LOGFILE
 fi
 
-fi
+
 echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
 
 cat << EOF >> /etc/motd
