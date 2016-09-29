@@ -144,7 +144,8 @@ echo "---- Step 4 - Demo content deployment"  2>&1 | tee -a $LOGFILE
 if [ $DEMO == "TRUE" ]
   then
 echo "-- Running /root/.opentlc.installer/Demo_Deployment_Script.sh"  2>&1 | tee -a $LOGFILE
-/root/.opentlc.installer/Demo_Deployment_Script.sh 2>&1 | tee -a /root/.Demo.Deployment.log
+chmod +x /root/.opentlc_deployer/${COURSE}/ansible/scripts/Demo_Deployment_Script.sh
+/root/.opentlc_deployer/${COURSE}/ansible/scripts/Demo_Deployment_Script.sh 2>&1 | tee -a /root/.Demo.Deployment.log
 echo "-- Finished running /root/.opentlc_deployer/${COURSE}/ansible/files/Demo_Deployment_Script.sh"  2>&1 | tee -a $LOGFILE
 fi
 
