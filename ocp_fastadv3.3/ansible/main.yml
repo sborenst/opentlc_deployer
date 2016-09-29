@@ -5,6 +5,26 @@
   vars_files:
     - "files/opentlc.vars.yml"  # I don't think i need this
   tasks:
+    - name: generate open.repo
+      template: src=files/open.repo.j2 dest=/etc/yum.repos.d/open.repo
+
+- name: Configure Bastion Station
+  hosts: hosts
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: Check all hosts are up
+      ping:
+    - name: check all hosts are running docker
+      shell: "systemctl status docker"
+    - name: update all hosts yum repository open.repo file
+      copy: "src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo"
+
+- name: Configure Bastion Station
+  hosts: bastion
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
     - name: Get GUID from hostname
       shell: "hostname|cut -f2 -d-|cut -f1 -d."
       register: guid
@@ -17,12 +37,8 @@
         defpassword: "{{replpassword.stdout}}"
     - debug: msg="guid fact is {{guid}}"
     - debug: msg="replpassword fact is {{replpassword}}"
-    - debug: msg="nfs is {{nfs}} dns is {{dns}} idm is {{idm}} "
-    - debug: msg="logging is {{logging}} metrics is {{metrics}} repo_version is {{repo_version}} "
-- name: Configure Bastion Station
-  hosts: bastion
-
-  tasks:
+    - debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
+    - debug: msg="logging is {{install_logging}} metrics is {{install_metrics}} repo_version is {{repo_version}} "
     - name: install openshift utils
       yum: name="atomic-openshift-utils" state=present
     - name: Get OPENSHIFT_RELEASE
@@ -33,3 +49,11 @@
     - debug: msg="osrelease fact is {{osrelease}}"
     - name: generate openshift ansible hosts file
       template: src=files/ocp.hosts.j2 dest=/etc/ansible/hosts
+
+    - name: Run DNS install script
+      shell: "bash scripts/oselab.dns.installer.sh"
+      when: install_dns
+
+    - name: Run nfs install script
+      shell: "bash scripts/oselab.nfs.installer.sh"
+      when: install_nfs
