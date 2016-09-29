@@ -15,8 +15,6 @@
   tasks:
     - name: Check all hosts are up
       ping:
-    - name: check all hosts are running docker
-      shell: "systemctl status docker"
     - name: update all hosts yum repository open.repo file
       copy: "src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo"
     - name: update all hosts yum repository open.repo file
@@ -33,4 +31,7 @@
           - atomic-openshift-clients
           - atomic-openshift-utils
           - docker
-          - network-manager
+          - docker-selinux
+          - docker-rhel-push-plugin
+          - docker-common
+          - NetworkManager
