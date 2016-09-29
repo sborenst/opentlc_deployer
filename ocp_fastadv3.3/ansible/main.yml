@@ -8,8 +8,8 @@
     - name: generate open.repo
       template: src=files/open.repo.j2 dest=/etc/yum.repos.d/open.repo
 
-- name: Configure Bastion Station
-  hosts: hosts
+- name: Run Tasks for all group
+  hosts: all
   vars_files:
     - "files/opentlc.vars.yml"
   tasks:
@@ -19,6 +19,20 @@
       shell: "systemctl status docker"
     - name: update all hosts yum repository open.repo file
       copy: "src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo"
+    - name: update all hosts yum repository open.repo file
+      shell: "yum clean all && yum repolist"
+    - name: copy openshift-htpasswd to master
+      copy: "src=files/openshift-htpasswd dest=/etc/openshift-htpasswd"
+      when: install_idm == false and inventory_hostname == "master1.example.com"
+
+- name: Run Tasks for hosts group
+  hosts: hosts
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: Bad Image workaround - will be removed
+      shell: "yum -y install python &&  yum -y remove docker-common-1.10.3-44.el7.x86_64 docker-1.10.3-44.el7.x86_64 docker-forward-journald-1.10.3-44.el7.x86_64 docker-rhel-push-plugin-1.10.3-44.el7.x86_64 docker-selinux-1.10.3-44.el7.x86_64"
+
 
 - name: Configure Bastion Station
   hosts: bastion
@@ -40,7 +54,10 @@
     - debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
     - debug: msg="logging is {{install_logging}} metrics is {{install_metrics}} repo_version is {{repo_version}} "
     - name: install openshift utils
-      yum: name="atomic-openshift-utils" state=present
+      yum: nname="{{ item }}" state=present
+      with_items:
+          - atomic-openshift-clients
+          - atomic-openshift-utils
     - name: Get OPENSHIFT_RELEASE
       shell: "yum info atomic-openshift.x86_64 | grep Version | awk -F': ' '{print $2}'"
       register: openshiftrelease
@@ -51,9 +68,37 @@
       template: src=files/ocp.hosts.j2 dest=/etc/ansible/hosts
 
     - name: Run DNS install script
-      shell: "bash scripts/oselab.dns.installer.sh"
+      script: scripts/oselab.dns.installer.sh
       when: install_dns
 
     - name: Run nfs install script
-      shell: "bash scripts/oselab.nfs.installer.sh"
+      script: scripts/oselab.nfs.installer.sh
       when: install_nfs
+
+
+- name: OpenShift Specific Prep
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "files/opentlc.vars.yml"  # I don't think i need this
+  tasks:
+    - name: get idm.example.com ca.crt file
+      shell: "wget http://idm.example.com/ipa/config/ca.crt -O /root/ca.crt"
+      when: install_idm
+    - name: uncomment idm authentication line in /etc/ansible/hosts
+      shell: "sed -i '/htpasswd_auth/s/^/#/' /etc/ansible/hosts && \
+              sed -i '/idm/s/^#//' /etc/ansible/hosts && \
+              sed -i '/openshift_master_ldap_ca_file/s/^#//' /etc/ansible/hosts"
+      when: install_idm
+    - name: get idm.example.com ca.crt file
+      shell: "wget http://idm.example.com/ipa/config/ca.crt -O /root/ca.crt"
+      when: install_idm == "false"
+    - name: uncomment idm authentication line in /etc/ansible/hosts
+      shell: "sed -i '/idm/s/^/#/' /etc/ansible/hosts && \
+              sed -i '/htpasswd_auth/s/^#//' /etc/ansible/hosts"
+      when: install_idm == "false"
+
+    - name: Run Ansible Installer for OpenShift
+      shell: "ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml 2>&1 | tee -a /root/.openshift.installer.log"
+      register: osinstalleroutput

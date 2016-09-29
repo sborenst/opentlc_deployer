@@ -1,6 +1,7 @@
 [opentlc:children]
 bastion
 hosts
+masters
 
 [bastion]
 oselab.example.com
@@ -9,3 +10,6 @@ oselab.example.com
 master1.example.com
 infranode1.example.com
 node[1:3].example.com
+
+[masters]
+master1.example.com
