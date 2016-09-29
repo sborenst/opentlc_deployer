@@ -119,7 +119,7 @@ openshift_master_overwrite_named_certificates=true
 
 # Configure metricsPublicURL in the master config for cluster metrics
 # See: https://docs.openshift.com/enterprise/latest/install_config/cluster_metrics.html
-openshift_master_metrics_public_url=https://metrics.cloudapps-${GUID}.oslab.opentlc.com/hawkular/metrics
+openshift_hosted_metrics_public_url=https://metrics.cloudapps-${GUID}.oslab.opentlc.com/hawkular/metrics
 
 # Configure loggingPublicURL in the master config for aggregate logging
 # See: https://docs.openshift.com/enterprise/latest/install_config/aggregate_logging.html
@@ -396,7 +396,7 @@ echo "-- Get the openshift_toolkit repo to deploy METRICS and LOGGING"  2>&1 | t
         secrets:
         - name: metrics-deployer
 API
-
+metricsPublicURL: "https://metrics.cloudapps-${GUID}.oslab.opentlc.com/hawkular/metrics"
         oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer
         oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster
         oc secrets new metrics-deployer nothing=/dev/null
