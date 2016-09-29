@@ -15,6 +15,7 @@
   tasks:
     - name: Check all hosts are up
       ping:
+
     - name: update all hosts yum repository open.repo file
       copy: "src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo"
     - name: update all hosts yum repository open.repo file
