@@ -1,0 +1,29 @@
+[opentlc:children]
+bastion
+hosts
+
+[opentlc:vars]
+guid=aaaa
+log_file="/root/.oselab.log"
+course_id="ocp_fastadv3.3"
+
+nfs="true"
+dns="true"
+idm="true"
+logging="true"
+metrics="true"
+repo_version="3.3"
+
+[bastion]
+oselab.example.com
+
+[hosts]
+master1.example.com
+infranode1.example.com
+node[1:3].example.com
+
+
+- name: Get GUID from machine
+  shell: "hostname|cut -f2 -d-|cut -f1 -d."
+  register: guid_id
+  ignore_erros: false

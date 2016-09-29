@@ -1,0 +1,7 @@
+
+  - name: Get GUID from machine
+    shell: "hostname|cut -f2 -d-|cut -f1 -d."
+    register: guid_id
+    ignore_erros: false
+
+  - debug: msg="GUID is {{guid_id.stdout}}" verbosity:4
