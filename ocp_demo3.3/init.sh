@@ -55,6 +55,8 @@ echo "---- Checking all hosts are up by testing that the docker service is Activ
 ##### WORKAROUNDS FOR TIMEOUTS ON RAVELLO
 ### Checking all hosts are up
 # Test that all the nodes are up, we are testing that the docker service is Active
+yum install ansible -y
+
   export RESULT=1
   until [ $RESULT -eq 0 ]; do
     echo "Checking hosts are up"  2>&1 | tee -a $LOGFILE
@@ -63,11 +65,9 @@ echo "---- Checking all hosts are up by testing that the docker service is Activ
   done
 
 sed -i '/#timeout = 10/s/.*/timeout = 59/' /etc/ansible/ansible.cfg
-yum install ansible -y
 echo "ansible-playbook -i /root/.opentlc_deployer/${COURSE}/ansible/files/opentlc.hosts /root/.opentlc_deployer/${COURSE}/ansible/main.yml"   2>&1 | tee -a $LOGFILE
 export HOME="/root"
 ansible-playbook -i /root/.opentlc_deployer/${COURSE}/ansible/files/opentlc.hosts /root/.opentlc_deployer/${COURSE}/ansible/main.yml   2>&1 | tee -a $LOGFILE
-
 
 ## WORKAROUND
 sed -i '/registry/s/^/#/' /etc/exports
