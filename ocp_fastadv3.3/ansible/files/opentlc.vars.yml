@@ -1,0 +1,9 @@
+log_file: "/root/.oselab.log"
+course_id: "ocp_fastadv3.3"
+
+nfs: true
+dns: true
+idm: true
+logging: true
+metrics: true
+repo_version: 3.3

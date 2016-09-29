@@ -1,7 +1,35 @@
+- name: Starting environment deployment
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "files/opentlc.vars.yml"  # I don't think i need this
+  tasks:
+    - name: Get GUID from hostname
+      shell: "hostname|cut -f2 -d-|cut -f1 -d."
+      register: guid
+    - set_fact:
+        guid: "{{guid.stdout}}"
+    - name: Get DEFAULT PASSWORD from file
+      shell: "cat /root/.default.password"
+      register: replpassword
+    - set_fact:
+        defpassword: "{{replpassword.stdout}}"
+    - debug: msg="guid fact is {{guid}}"
+    - debug: msg="replpassword fact is {{replpassword}}"
+    - debug: msg="nfs is {{nfs}} dns is {{dns}} idm is {{idm}} "
+    - debug: msg="logging is {{logging}} metrics is {{metrics}} repo_version is {{repo_version}} "
+- name: Configure Bastion Station
+  hosts: bastion
 
-  - name: Get GUID from machine
-    shell: "hostname|cut -f2 -d-|cut -f1 -d."
-    register: guid_id
-    ignore_erros: false
-
-  - debug: msg="GUID is {{guid_id.stdout}}" verbosity:4
+  tasks:
+    - name: install openshift utils
+      yum: name="atomic-openshift-utils" state=present
+    - name: Get OPENSHIFT_RELEASE
+      shell: "yum info atomic-openshift.x86_64 | grep Version | awk -F': ' '{print $2}'"
+      register: openshiftrelease
+    - set_fact:
+        osrelease: "{{openshiftrelease.stdout}}"
+    - debug: msg="osrelease fact is {{osrelease}}"
+    - name: generate openshift ansible hosts file
+      template: src=files/ocp.hosts.j2 dest=/etc/ansible/hosts

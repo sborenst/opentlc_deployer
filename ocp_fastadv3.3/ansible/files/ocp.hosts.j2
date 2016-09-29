@@ -1,0 +1,116 @@
+# Create an OSEv3 group that contains the master, nodes, etcd, and lb groups.
+# The lb group lets Ansible configure HAProxy as the load balancing solution.
+# Comment lb out if your load balancer is pre-configured.
+timeout=60
+[OSEv3:children]
+masters
+etcd
+nodes
+nfs
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+timeout=60
+openshift_image_tag=v={{ osrelease }}
+openshift_release={{ osrelease }}
+openshift_install_examples=true
+
+
+docker_version="1.10.3"
+ansible_ssh_user=root
+deployment_type=openshift-enterprise
+#openshift_deployment_type=openshift-enterprise
+# Enable cockpit
+osm_use_cockpit=true
+osm_cockpit_plugins=['cockpit-kubernetes']
+
+use_cluster_metrics={{ metrics }}
+containerized=false
+openshift_master_api_port=8443
+openshift_master_console_port=8443
+#openshift_master_cluster_method=native
+
+osm_cluster_network_cidr=10.1.0.0/16
+openshift_portal_net=172.30.0.0/16
+
+#openshift_master_portal_net=172.30.0.0/16
+
+#os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+
+# Native high availability cluster method with optional load balancer.
+# If no lb group is defined, the installer assumes that a load balancer has
+# been preconfigured. For installation the value of
+# openshift_master_cluster_hostname must resolve to the load balancer
+# or to one or all of the masters defined in the inventory if no load
+# balancer is present.
+#openshift_master_cluster_method=native
+openshift_master_cluster_hostname=master1.example.com
+openshift_master_cluster_public_hostname=master1-{{guid}}.oslab.opentlc.com
+openshift_master_default_subdomain=cloudapps-{{guid}}.oslab.opentlc.com
+openshift_master_overwrite_named_certificates=true
+
+# Configure metricsPublicURL in the master config for cluster metrics
+# See: https://docs.openshift.com/enterprise/latest/install_config/cluster_metrics.html
+openshift_hosted_metrics_public_url=https://metrics.cloudapps-{{guid}}.oslab.opentlc.com/hawkular/metrics
+
+# Configure loggingPublicURL in the master config for aggregate logging
+# See: https://docs.openshift.com/enterprise/latest/install_config/aggregate_logging.html
+openshift_master_logging_public_url=https://kibana.cloudapps-{{guid}}.oslab.opentlc.com
+# Enable cluster metrics
+
+#openshift_master_identity_providers=[{'name': 'idm', 'challenge': 'true', 'login': 'true', 'kind': 'LDAPPasswordIdentityProvider', 'attributes': {'id': ['dn'], 'email': ['mail'], 'name': ['cn'], 'preferredUsername': ['uid']}, 'bindDN': 'uid=admin,cn=users,cn=accounts,dc=example,dc=com', 'bindPassword': '{{defpassword}}', 'ca': '/etc/origin/master/ipa-ca.crt', 'insecure': 'false', 'url': 'ldap://idm.example.com/cn=users,cn=accounts,dc=example,dc=com?uid?sub?(memberOf=cn=ose-users,cn=groups,cn=accounts,dc=example,dc=com)'}]
+#openshift_master_ldap_ca_file=/root/ca.crt
+
+#openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/openshift-passwd'}]
+
+
+# Configure additional projects
+#openshift_additional_projects={'my-project': {'default_node_selector': 'label=value'}}
+
+
+# default project node selector
+osm_default_node_selector='region=primary'
+
+
+openshift_hosted_router_selector='region=infra'
+openshift_hosted_router_replicas=1
+#openshift_hosted_router_certificate={"certfile": "/path/to/router.crt", "keyfile": "/path/to/router.key", "cafile": "/path/to/router-ca.crt"}
+openshift_hosted_registry_selector='region=infra'
+openshift_hosted_registry_replicas=1
+
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=oselab.example.com
+openshift_hosted_registry_storage_nfs_directory=/srv/nfs
+openshift_hosted_registry_storage_nfs_options='*(rw,root_squash)'
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=10Gi
+
+
+openshift_hosted_metrics_storage_kind=nfs
+openshift_hosted_metrics_storage_access_modes=['ReadWriteOnce']
+# Not sure if metrics_storage_host exists
+openshift_hosted_metrics_storage_host=oselab.example.com
+openshift_hosted_metrics_storage_nfs_directory=/srv/nfs
+openshift_hosted_metrics_storage_nfs_options='*(rw,root_squash)'
+openshift_hosted_metrics_storage_volume_name=metrics
+openshift_hosted_metrics_storage_volume_size=10Gi
+
+
+[nfs]
+oselab.example.com
+# host group for masters
+[masters]
+master1.example.com
+
+# host group for etcd
+[etcd]
+master1.example.com
+
+# host group for nodes, includes region info
+[nodes]
+master1.example.com openshift_public_hostname="master1-{{guid}}.oslab.opentlc.com" openshift_hostname="master1.example.com"
+infranode1.example.com openshift_hostname="infranode1.example.com" openshift_node_labels="{'region': 'infra', 'zone': 'default', 'env': 'infra'}"
+node1.example.com openshift_hostname="node1.example.com" openshift_node_labels="{'region': 'primary', 'zone': 'one', 'env': 'dev'}"
+node2.example.com openshift_hostname="node2.example.com" openshift_node_labels="{'region': 'primary', 'zone': 'two', 'env': 'dev'}"
+node3.example.com openshift_hostname="node3.example.com" openshift_node_labels="{'region': 'primary', 'zone': 'three', 'env': 'prod'}"
