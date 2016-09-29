@@ -34,5 +34,8 @@
           - docker-selinux
           - docker-rhel-push-plugin
           - docker-common
+          - docker-forward-journald
           - NetworkManager
           - NetworkManager-libnm
+    - name: delete lv vg and pv
+      shell: "vgremove -f docker-vg && pvremove -f /dev/vdb1"
