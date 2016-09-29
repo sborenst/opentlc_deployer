@@ -1,0 +1,9 @@
+log_file: "/root/.oselab.log"
+course_id: ocp_implementation3.3
+
+install_nfs: false
+install_dns: false
+install_idm: false
+install_logging: false
+install_metrics: false
+repo_version: 3.3

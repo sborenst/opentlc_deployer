@@ -1,0 +1,36 @@
+- name: Starting environment deployment
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "files/opentlc.vars.yml"  # I don't think i need this
+  tasks:
+    - name: generate open.repo
+      template: src=files/open.repo.j2 dest=/etc/yum.repos.d/open.repo
+
+- name: Run Tasks for all group
+  hosts: all
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: Check all hosts are up
+      ping:
+    - name: check all hosts are running docker
+      shell: "systemctl status docker"
+    - name: update all hosts yum repository open.repo file
+      copy: "src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo"
+    - name: update all hosts yum repository open.repo file
+      shell: "yum clean all && yum repolist"
+
+- name: Run Tasks for hosts group
+  hosts: hosts
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: remove packages
+      yum: name="{{ item }}" state=absent
+      with_items:
+          - atomic-openshift-clients
+          - atomic-openshift-utils
+          - docker
+          - network-manager
