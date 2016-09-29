@@ -58,6 +58,7 @@
       with_items:
           - atomic-openshift-clients
           - atomic-openshift-utils
+          - atomic-openshift
     - name: Get OPENSHIFT_RELEASE
       shell: "yum info atomic-openshift.x86_64 | grep Version | awk -F': ' '{print $2}'"
       register: openshiftrelease
