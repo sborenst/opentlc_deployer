@@ -103,7 +103,7 @@ echo "-- Get the openshift_toolkit repo to deploy METRICS and LOGGING"  2>&1 | t
         name: metrics-deployer
       secrets:
       - name: metrics-deployer
-  API
+API
     oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer   2>&1 | tee -a $LOGFILE
     oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster   2>&1 | tee -a $LOGFILE
     oc secrets new metrics-deployer nothing=/dev/null
