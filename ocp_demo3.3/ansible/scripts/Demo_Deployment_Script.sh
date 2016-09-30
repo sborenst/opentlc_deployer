@@ -1,5 +1,6 @@
 #!/bin/bash
 set -x
+export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
 
 # master
 ssh root@master1.example.com "htpasswd -b /etc/origin/openshift-passwd admin somepassword"

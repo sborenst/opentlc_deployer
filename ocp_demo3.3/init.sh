@@ -25,6 +25,7 @@ export COURSE=$2;
 export METRICS="TRUE"
 export LOGGING="TRUE"
 export DATE=`date`
+export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
 
 ################################################################################
 ## Step 1 - Prepare environemnt and test that all hosts are up
