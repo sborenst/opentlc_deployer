@@ -120,22 +120,35 @@ oc project default  2>&1 | tee -a $LOGFILE
 if [ $LOGGING == "TRUE" ]
  then
    ssh master1.example.com "oc apply -n openshift -f     /usr/share/openshift/examples/infrastructure-templates/enterprise/logging-deployer.yaml"
+   oc create -f - <<API
+   apiVersion: v1
+   kind: PersistentVolume
+   metadata:
+     name: "es-storage"
+   spec:
+     capacity:
+       storage: 10Gi
+     accessModes:
+       - ReadWriteOnce
+       - ReadWriteMany
+     nfs:
+       path: "/srv/nfs/es-storage"
+       server: "oselab.example.com"
+       readOnly: false
+API
 
    oadm new-project logging --node-selector=""
-   oc project logging
    oc new-app logging-deployer-account-template
    oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
    oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd
    oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd
-   oc new-app logging-deployer-template --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install
+
+   oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install
    oc label nodes --all logging-infra-fluentd=true
    oc label node master1.example.com --overwrite logging-infra-fluentd=false
    oc project default
 
  fi
-
-
-
 
 echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
 
@@ -166,13 +179,16 @@ echo "-- Finished running /root/.opentlc_deployer/${COURSE}/ansible/files/Demo_D
 fi
 
 
-echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
-
 cat << EOF >> /etc/motd
 ###############################################################################
 Demo Materials Deployment Completed : `date`
 ###############################################################################
-Status
+EOF
+
+sleep 60
+cat << EOF >> /etc/motd
+###############################################################################
+OpenShift Cluster Quick Status: `date`
 ###############################################################################
 oc get pods --all-namespaces -o wide;
 `oc get pods --all-namespaces -o wide`
@@ -186,6 +202,7 @@ oc get nodes --show-labels
 `oc get nodes --show-labels`
 ###############################################################################
 EOF
+
 
 echo "-- Update /etc/motd on all nodes"  2>&1 | tee -a $LOGFILE
 ansible all -l masters,nodes,etcd  -m copy -a "src=/etc/motd dest=/etc/motd"
