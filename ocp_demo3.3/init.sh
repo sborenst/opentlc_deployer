@@ -139,17 +139,23 @@ if [ $LOGGING == "TRUE" ]
 API
 
    oadm new-project logging --node-selector=""
-   oc new-app logging-deployer-account-template
-   oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
+   oc project logging
+   oc new-app logging-deployer-account-template -n logging
+#   oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
+   oadm policy add-cluster-role-to-user cluster-admin       system:serviceaccount:logging:logging-deployer
+
    oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd
    oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd
+   oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install -n logging
 
-   oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install
    oc label nodes --all logging-infra-fluentd=true
    oc label node master1.example.com --overwrite logging-infra-fluentd=false
-   oc project default
+
+
 
  fi
+
+ oc project default
 
 echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
 
