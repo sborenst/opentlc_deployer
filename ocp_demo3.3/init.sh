@@ -24,6 +24,7 @@ export COURSE=$2;
 #export COURSE="ocp_demo3.3"
 export METRICS="TRUE"
 export LOGGING="TRUE"
+export DEMO="TRUE"
 export DATE=`date`
 export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
 
@@ -89,73 +90,73 @@ ansible-playbook -i /etc/ansible/hosts /usr/share/ansible/openshift-ansible/play
 echo "---- Step 3 - Post-Configure OpenShift (Metrics, Logging)"  2>&1 | tee -a $LOGFILE
 echo "-- Get the openshift_toolkit repo to deploy METRICS and LOGGING"  2>&1 | tee -a $LOGFILE
 
-scp -r master1.example.com:/root/.kube /root/.kube  2>&1 | tee -a $LOGFILE
+  scp -r master1.example.com:/root/.kube /root/.kube  2>&1 | tee -a $LOGFILE
 
-if [ $METRICS == "TRUE" ]
-  then
-    echo "Running Ansible playbook for Metrics, logs to ${LOGFILE}.metrics"  2>&1 | tee -a $LOGFILE
-    oc project openshift-infra   2>&1 | tee -a $LOGFILE
-    oc create -f - <<API
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      name: metrics-deployer
-    secrets:
-    - name: metrics-deployer
-API
-  oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer   2>&1 | tee -a $LOGFILE
-  oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster   2>&1 | tee -a $LOGFILE
-  oc secrets new metrics-deployer nothing=/dev/null
-  oc new-app openshift/metrics-deployer-template -p CASSANDRA_PV_SIZE=9Gi -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.oslab.opentlc.com -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/   2>&1 | tee -a $LOGFILE
-  ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.oslab.opentlc.com'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
-  oc project default   2>&1 | tee -a $LOGFILE
+  if [ $METRICS == "TRUE" ]
+    then
+      echo "Running Ansible playbook for Metrics, logs to ${LOGFILE}.metrics"  2>&1 | tee -a $LOGFILE
+      oc project openshift-infra   2>&1 | tee -a $LOGFILE
+      oc create -f - <<API
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: metrics-deployer
+      secrets:
+      - name: metrics-deployer
+  API
+    oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer   2>&1 | tee -a $LOGFILE
+    oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster   2>&1 | tee -a $LOGFILE
+    oc secrets new metrics-deployer nothing=/dev/null
+    oc new-app openshift/metrics-deployer-template -p CASSANDRA_PV_SIZE=9Gi -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.oslab.opentlc.com -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/   2>&1 | tee -a $LOGFILE
+    ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.oslab.opentlc.com'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
+    oc project default   2>&1 | tee -a $LOGFILE
 
-fi
+  fi
 
-echo "-- Check pods in the openshift-infra project"  2>&1 | tee -a $LOGFILE
-oc get pods -n openshift-infra  -o wide  2>&1 | tee -a $LOGFILE
+  echo "-- Check pods in the openshift-infra project"  2>&1 | tee -a $LOGFILE
+  oc get pods -n openshift-infra  -o wide  2>&1 | tee -a $LOGFILE
 
-echo "-- set the current context to the default project"  2>&1 | tee -a $LOGFILE
-oc project default  2>&1 | tee -a $LOGFILE
+  echo "-- set the current context to the default project"  2>&1 | tee -a $LOGFILE
+  oc project default  2>&1 | tee -a $LOGFILE
 
-if [ $LOGGING == "TRUE" ]
- then
-   ssh master1.example.com "oc apply -n openshift -f     /usr/share/openshift/examples/infrastructure-templates/enterprise/logging-deployer.yaml"   2>&1 | tee -a $LOGFILE
-   oc create -f - <<API
-   apiVersion: v1
-   kind: PersistentVolume
-   metadata:
-     name: "es-storage"
-   spec:
-     capacity:
-       storage: 10Gi
-     accessModes:
-       - ReadWriteOnce
-       - ReadWriteMany
-     nfs:
-       path: "/srv/nfs/es-storage"
-       server: "oselab.example.com"
-       readOnly: false
-API
+  if [ $LOGGING == "TRUE" ]
+   then
+     ssh master1.example.com "oc apply -n openshift -f     /usr/share/openshift/examples/infrastructure-templates/enterprise/logging-deployer.yaml"   2>&1 | tee -a $LOGFILE
+     oc create -f - <<API
+     apiVersion: v1
+     kind: PersistentVolume
+     metadata:
+       name: "es-storage"
+     spec:
+       capacity:
+         storage: 10Gi
+       accessModes:
+         - ReadWriteOnce
+         - ReadWriteMany
+       nfs:
+         path: "/srv/nfs/es-storage"
+         server: "oselab.example.com"
+         readOnly: false
+  API
 
-   oadm new-project logging --node-selector=""   2>&1 | tee -a $LOGFILE
-   oc project logging   2>&1 | tee -a $LOGFILE
-   oc new-app logging-deployer-account-template -n logging   2>&1 | tee -a $LOGFILE
-   oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
-#   oadm policy add-cluster-role-to-user cluster-admin       system:serviceaccount:logging:logging-deployer   2>&1 | tee -a $LOGFILE
+     oadm new-project logging --node-selector=""   2>&1 | tee -a $LOGFILE
+     oc project logging   2>&1 | tee -a $LOGFILE
+     oc new-app logging-deployer-account-template -n logging   2>&1 | tee -a $LOGFILE
+     oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
+  #   oadm policy add-cluster-role-to-user cluster-admin       system:serviceaccount:logging:logging-deployer   2>&1 | tee -a $LOGFILE
 
-   oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
-   oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
-   oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install -n logging   2>&1 | tee -a $LOGFILE
+     oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
+     oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
+     oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install -n logging   2>&1 | tee -a $LOGFILE
 
-   oc label nodes --all logging-infra-fluentd=true   2>&1 | tee -a $LOGFILE
-   oc label node master1.example.com --overwrite logging-infra-fluentd=false   2>&1 | tee -a $LOGFILE
+     oc label nodes --all logging-infra-fluentd=true   2>&1 | tee -a $LOGFILE
+     oc label node master1.example.com --overwrite logging-infra-fluentd=false   2>&1 | tee -a $LOGFILE
 
 
 
- fi
+   fi
 
- oc project default
+   oc project default
 
 echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
 

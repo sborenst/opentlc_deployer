@@ -24,6 +24,8 @@ export COURSE=$2;
 #export COURSE="ocp_fastadv3.3"
 export METRICS="FALSE"
 export LOGGING="FALSE"
+export DEMO="false"
+
 export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
 
 
