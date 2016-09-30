@@ -106,7 +106,8 @@ API
   oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer
   oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster
   oc secrets new metrics-deployer nothing=/dev/null
-  oc new-app openshift/metrics-deployer-template -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.oslab.opentlc.com -p USE_PERSISTENT_STORAGE=false -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/
+  oc new-app openshift/metrics-deployer-template -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.oslab.opentlc.com -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/
+  ansible masters -m shell -a "export GUID=`hostname|cut -f2 -d-|cut -f1 -d.` && sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.oslab.opentlc.com'  /etc/origin/master/master-config.yaml"
   oc project default
 
 fi
@@ -128,7 +129,7 @@ if [ $LOGGING == "TRUE" ]
    system:serviceaccount:logging:logging-deployer
    oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd
    oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd
-   oc new-app logging-deployer-template --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install
+   oc new-app logging-deployer-template --param PUBLIC_MASTER _URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install
    oc label nodes --all logging-infra-fluentd=true
    oc label node master1.example.com --overwrite logging-infra-fluentd=false
    oc project default
@@ -167,11 +168,22 @@ echo "-- Finished running /root/.opentlc_deployer/${COURSE}/ansible/files/Demo_D
 fi
 
 
-echo "-- Update /etc/motd"  2>&1 | tee -a $LOGFILE
-
 cat << EOF >> /etc/motd
 ###############################################################################
 Demo Materials Deployment Completed : `date`
+###############################################################################
+Status
+###############################################################################
+oc get pods --all-namespaces -o wide;
+`oc get pods --all-namespaces -o wide`
+###############################################################################
+oc get routes --all-namespaces
+###############################################################################
+`oc get routes --all-namespaces -o wide`
+###############################################################################
+oc get nodes --show-labels
+###############################################################################
+`oc get nodes --show-labels`
 ###############################################################################
 EOF
 
