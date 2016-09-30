@@ -1,0 +1,101 @@
+- name: Starting environment deployment
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "files/opentlc.vars.yml"  # I don't think i need this
+  tasks:
+    - name: generate open.repo
+      template: src=files/open.repo.j2 dest=/etc/yum.repos.d/open.repo
+
+- name: Run Tasks for all group
+  hosts: all
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: Check all hosts are up
+      ping:
+    - name: update all hosts yum repository open.repo file
+      copy: "src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo"
+    - name: update all hosts yum repository open.repo file
+      shell: "yum clean all && yum repolist"
+    - name: copy openshift-htpasswd to master
+      copy: "src=files/openshift-htpasswd dest=/etc/openshift-htpasswd"
+      when: install_idm == false and inventory_hostname == "master1.example.com"
+
+- name: Run Tasks for hosts group
+  hosts: hosts
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: check all hosts are running docker
+      shell: "systemctl status docker"
+    - name: Bad Image workaround 3.3.0.32 - will be removed
+      shell: "yum -y install python &&  yum -y remove docker-common-1.10.3-44.el7.x86_64 docker-1.10.3-44.el7.x86_64 docker-forward-journald-1.10.3-44.el7.x86_64 docker-rhel-push-plugin-1.10.3-44.el7.x86_64 docker-selinux-1.10.3-44.el7.x86_64"
+
+
+- name: Configure Bastion Station
+  hosts: bastion
+  vars_files:
+    - "files/opentlc.vars.yml"
+  tasks:
+    - name: Get GUID from hostname
+      shell: "hostname|cut -f2 -d-|cut -f1 -d."
+      register: guid
+    - set_fact:
+        guid: "{{guid.stdout}}"
+    - name: Get DEFAULT PASSWORD from file
+      shell: "cat /root/.default.password"
+      register: replpassword
+    - set_fact:
+        defpassword: "{{replpassword.stdout}}"
+    - debug: msg="guid fact is {{guid}}"
+    - debug: msg="replpassword fact is {{replpassword}}"
+    - debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
+    - debug: msg="logging is {{install_logging}} metrics is {{install_metrics}} repo_version is {{repo_version}} "
+    - name: install openshift utils
+      yum: name="{{ item }}" state=present
+      with_items:
+          - atomic-openshift-clients
+          - atomic-openshift-utils
+          - atomic-openshift
+    - name: Get OPENSHIFT_RELEASE
+      shell: "yum info atomic-openshift.x86_64 | grep Version | awk -F': ' '{print $2}'"
+      register: openshiftrelease
+    - set_fact:
+        osrelease: "{{openshiftrelease.stdout}}"
+    - debug: msg="osrelease fact is {{osrelease}}"
+    - name: generate openshift ansible hosts file
+      template: src=files/ocp.hosts.j2 dest=/etc/ansible/hosts
+
+    - name: Run DNS install script
+      script: scripts/oselab.dns.installer.sh
+      when: install_dns
+
+    - name: Run nfs install script
+      script: scripts/oselab.nfs.installer.sh
+      when: install_nfs
+
+
+- name: OpenShift Specific Prep
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "files/opentlc.vars.yml"  # I don't think i need this
+  tasks:
+    - name: get idm.example.com ca.crt file
+      shell: "wget http://idm.example.com/ipa/config/ca.crt -O /root/ca.crt"
+      when: install_idm
+    - name: uncomment idm authentication line in /etc/ansible/hosts
+      shell: "sed -i '/htpasswd_auth/s/^/#/' /etc/ansible/hosts && \
+              sed -i '/idm/s/^#//' /etc/ansible/hosts && \
+              sed -i '/openshift_master_ldap_ca_file/s/^#//' /etc/ansible/hosts"
+      when: install_idm
+    - name: get idm.example.com ca.crt file
+      shell: "wget http://idm.example.com/ipa/config/ca.crt -O /root/ca.crt"
+      when: install_idm == "false"
+    - name: uncomment idm authentication line in /etc/ansible/hosts
+      shell: "sed -i '/idm/s/^/#/' /etc/ansible/hosts && \
+              sed -i '/htpasswd_auth/s/^#//' /etc/ansible/hosts"
+      when: install_idm == "false"
