@@ -7,7 +7,7 @@ chown -R nfsnobody:nfsnobody /srv/nfs
 
 echo "Setting up exports..."
 cat << EOF > /etc/exports
-/srv/nfs/registry *(rw,root_squash,no_wdelay,sync)
+#/srv/nfs/registry *(rw,root_squash,no_wdelay,sync)
 /srv/nfs/jenkins *(rw,root_squash,no_wdelay,sync)
 /srv/nfs/cassandra *(rw,root_squash,no_wdelay,sync)
 /srv/nfs/vol1 *(rw,root_squash,no_wdelay,sync)
