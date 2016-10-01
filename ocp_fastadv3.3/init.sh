@@ -25,6 +25,7 @@ export COURSE=$2;
 export METRICS="FALSE"
 export LOGGING="FALSE"
 export DEMO="false"
+export DOMAIN="oslab.opentlc.com"
 
 export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
 

@@ -27,6 +27,7 @@ export LOGGING="TRUE"
 export DEMO="TRUE"
 export DATE=`date`
 export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
+export DOMAIN="oslab.opentlc.com"
 
 ################################################################################
 ## Step 1 - Prepare environemnt and test that all hosts are up
@@ -57,7 +58,7 @@ echo "---- Checking all hosts are up by testing that the docker service is Activ
 ##### WORKAROUNDS FOR TIMEOUTS ON RAVELLO
 ### Checking all hosts are up
 # Test that all the nodes are up, we are testing that the docker service is Active
-yum install ansible -y
+#yum install ansible -y
 
   export RESULT=1
   until [ $RESULT -eq 0 ]; do
@@ -107,8 +108,8 @@ API
     oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer   2>&1 | tee -a $LOGFILE
     oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster   2>&1 | tee -a $LOGFILE
     oc secrets new metrics-deployer nothing=/dev/null
-    oc new-app openshift/metrics-deployer-template -p CASSANDRA_PV_SIZE=9Gi -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.oslab.opentlc.com -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/   2>&1 | tee -a $LOGFILE
-    ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.oslab.opentlc.com'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
+    oc new-app openshift/metrics-deployer-template -p CASSANDRA_PV_SIZE=9Gi -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.${DOMAIN} -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/   2>&1 | tee -a $LOGFILE
+    ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.${DOMAIN}'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
     oc project default   2>&1 | tee -a $LOGFILE
 
   fi
@@ -137,7 +138,7 @@ API
          path: "/srv/nfs/es-storage"
          server: "oselab.example.com"
          readOnly: false
-  API
+API
 
      oadm new-project logging --node-selector=""   2>&1 | tee -a $LOGFILE
      oc project logging   2>&1 | tee -a $LOGFILE
@@ -147,7 +148,7 @@ API
 
      oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
      oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
-     oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install -n logging   2>&1 | tee -a $LOGFILE
+     oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.${DOMAIN}:8443 --param KIBANA_HOSTNAME=kibana.cloudapps-${GUID}.${DOMAIN} --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install -n logging   2>&1 | tee -a $LOGFILE
 
      oc label nodes --all logging-infra-fluentd=true   2>&1 | tee -a $LOGFILE
      oc label node master1.example.com --overwrite logging-infra-fluentd=false   2>&1 | tee -a $LOGFILE

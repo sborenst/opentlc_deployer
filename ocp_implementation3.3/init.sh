@@ -24,6 +24,7 @@ export COURSE=$2;
 #export COURSE="ocp_implementation3.3"
 export METRICS="TRUE"
 export LOGGING="TRUE"
+export DOMAIN="oslab.opentlc.com"
 
 
 ################################################################################

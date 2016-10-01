@@ -57,7 +57,7 @@ echo "---- Checking all hosts are up by testing that the docker service is Activ
 ##### WORKAROUNDS FOR TIMEOUTS ON RAVELLO
 ### Checking all hosts are up
 # Test that all the nodes are up, we are testing that the docker service is Active
-yum install ansible -y
+yum install ansible -y  2>&1 | tee -a $LOGFILE
 
   export RESULT=1
   until [ $RESULT -eq 0 ]; do
@@ -72,7 +72,7 @@ export HOME="/root"
 ansible-playbook -i /root/.opentlc_deployer/${COURSE}/ansible/files/opentlc.hosts /root/.opentlc_deployer/${COURSE}/ansible/main.yml   2>&1 | tee -a $LOGFILE
 
 ## WORKAROUND
-sed -i '/registry/s/^/#/' /etc/exports
+#sed -i '/registry/s/^/#/' /etc/exports
 
 
 ################################################################################
@@ -119,7 +119,7 @@ API
   echo "-- set the current context to the default project"  2>&1 | tee -a $LOGFILE
   oc project default  2>&1 | tee -a $LOGFILE
 
-  if [ $LOGGING == "TRUE" ]
+if [ $LOGGING == "TRUE" ]
    then
      ssh master1.example.com "oc apply -n openshift -f     /usr/share/openshift/examples/infrastructure-templates/enterprise/logging-deployer.yaml"   2>&1 | tee -a $LOGFILE
      oc create -f - <<API
@@ -145,7 +145,7 @@ API
      oadm policy add-cluster-role-to-user oauth-editor        system:serviceaccount:logging:logging-deployer
   #   oadm policy add-cluster-role-to-user cluster-admin       system:serviceaccount:logging:logging-deployer   2>&1 | tee -a $LOGFILE
 
-     oadm policy add-scc-to-user privileged      system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
+     oadm policy add-scc-to-user privileged system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
      oadm policy add-cluster-role-to-user cluster-reader     system:serviceaccount:logging:aggregated-logging-fluentd   2>&1 | tee -a $LOGFILE
      oc new-app logging-deployer-template --param ES_PVC_SIZE=9Gi --param PUBLIC_MASTER_URL=https://master1-${GUID}.oslab.opentlc.com:8443 --param KIBANA_HOSTNAME=kibana.apps-${GUID}.oslab.opentlc.com --param IMAGE_VERSION=3.3.0 --param IMAGE_PREFIX=registry.access.redhat.com/openshift3/        --param KIBANA_NODESELECTOR='region=infra' --param ES_NODESELECTOR='region=infra' --param MODE=install -n logging   2>&1 | tee -a $LOGFILE
 
@@ -154,7 +154,7 @@ API
 
 
 
-   fi
+ fi
 
    oc project default
 
