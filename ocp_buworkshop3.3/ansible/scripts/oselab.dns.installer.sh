@@ -1,6 +1,10 @@
 #!/bin/bash
+export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
+export REPLPASSWORD=`cat /root/.default.password`
+export DOMAINSUFFIX="workshops.openshift.com"
+export DOMAINPREFIX="apps"
 
-guid=`hostname|cut -f2 -d-|cut -f1 -d.`
+
 yum -y install bind bind-utils
 systemctl enable named
 systemctl stop named
@@ -11,14 +15,14 @@ systemctl stop named
 #firewall-cmd --reload
 #sleep 100;
 
-infraIP1=`host infranode1-$guid.oslab.opentlc.com ipa.opentlc.com  | grep $guid | awk '{ print $4 }'`
-domain="cloudapps-$guid.oslab.opentlc.com"
+infraIP1=`host infranode1-$GUID.${DOMAINSUFFIX} ipa.opentlc.com  | grep $GUID | awk '{ print $4 }'`
 
 echo infraIP 1  is $infraIP1 | tee -a /root/.dns.installer.txt
 echo infraIP 2  is $infraIP2 | tee -a /root/.dns.installer.txt
-echo guid  is $guid | tee -a /root/.dns.installer.txt
-echo domain  is $domain | tee -a /root/.dns.installer.txt
+echo GUID  is $GUID | tee -a /root/.dns.installer.txt
 
+export domain="${DOMAINPREFIX}-"${GUID}".${DOMAINSUFFIX}"
+echo "domain is $domain"
 
 
 rm -rf /var/named/zones
@@ -71,7 +75,7 @@ restorecon /etc/named.conf
 
 systemctl start named
 
-dig @127.0.0.1 test.cloudapps-$guid.oslab.opentlc.com
+dig @127.0.0.1 test.cloudapps-$GUID.${DOMAINSUFFIX}
 
 if [ $? = 0 ]
 then
