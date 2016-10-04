@@ -6,7 +6,7 @@ export DOMAIN="apps-${GUID}.workshops.openshift.com"
 
 # master
 #ssh root@master1.example.com "htpasswd -b /etc/origin/openshift-passwd admin ${REPLPASSWORD}"
-oc adm policy add-cluster-role-to-user cluster-admin admin
+oc adm policy add-cluster-role-to-user cluster-admin admin1
 oc adm policy add-cluster-role-to-user cluster-admin karla
 oc adm policy add-cluster-role-to-user cluster-admin system:serviceaccount:default:default
 # infra
