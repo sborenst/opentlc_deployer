@@ -110,7 +110,7 @@ API
   oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster   2>&1 | tee -a $LOGFILE
   oc secrets new metrics-deployer nothing=/dev/null
   oc new-app openshift/metrics-deployer-template -p CASSANDRA_PV_SIZE=9Gi -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.${DOMAIN} -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/   2>&1 | tee -a $LOGFILE
-  ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.${DOMAIN}'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
+  ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.${DOMAIN}/hawkular/metrics'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
   oc project default   2>&1 | tee -a $LOGFILE
 
 fi
