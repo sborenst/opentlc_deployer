@@ -11,3 +11,4 @@ export DEMO="TRUE"
 export DATE=`date`
 export GUID=`hostname|cut -f2 -d-|cut -f1 -d.`
 export DOMAIN="oslab.opentlc.com"
+echo "test" > /root/andy-test.txt
