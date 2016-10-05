@@ -106,6 +106,7 @@ if [ $METRICS == "TRUE" ]
     secrets:
     - name: metrics-deployer
 API
+  oc patch namespace/openshift-infra -p '{"metadata":{"annotations":{"openshift.io/node-selector":"region=infra"}}}';
   oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer   2>&1 | tee -a $LOGFILE
   oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster   2>&1 | tee -a $LOGFILE
   oc secrets new metrics-deployer nothing=/dev/null
