@@ -75,7 +75,7 @@ restorecon /etc/named.conf
 
 systemctl start named
 
-dig @127.0.0.1 test.cloudapps-$GUID.${DOMAINSUFFIX}
+dig @127.0.0.1 test.apps-$GUID.${DOMAINSUFFIX}
 
 if [ $? = 0 ]
 then
