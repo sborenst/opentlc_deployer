@@ -22,14 +22,6 @@
       command: grep finished /var/log/cloud-init.log
       changed_when: False
 
-    - name: install prereq packages
-      yum: name="{{ item }}" state=present
-      with_items: "{{prereq_pkgs}}"
-
-    - name: enable ntpd
-      service: name=ntpd state=started enabled=yes
-
-
     - name: remove current repository files
       file: path=/etc/yum.repos.d/{{ item }} state=absent
       with_items: repodircontents.stdout_lines
@@ -40,8 +32,15 @@
     - name: remove current repositories
       shell: "yum repolist"
 
-    - name: yum update the environment
-      shell: "yum update -y"
+    - name: update all packages
+      yum: name='*' state=latest update_cache=yes
+
+    - name: install prereq packages
+      yum: name="{{ item }}" state=present
+      with_items: "{{prereq_pkgs}}"
+
+    - name: enable ntpd
+      service: name=ntpd state=started enabled=yes
 
     - name: install docker
       yum: name="docker-{{ docker_version }}" state=present
@@ -54,6 +53,3 @@
 
     - name: start and enable docker
       service: name=docker state=started enabled=yes
-
-    - name: update all packages
-      yum: name='*' state=latest update_cache=yes
