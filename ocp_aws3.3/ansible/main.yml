@@ -1,0 +1,59 @@
+- name: OpenShift Prereqs
+  hosts: all
+  become: yes
+  vars:
+    prereq_pkgs:
+      - vim
+      - tmux
+      - ntp
+      - wget
+      - git
+      - net-tools
+      - bind-utils
+      - iptables-services
+      - bridge-utils
+      - bash-completion
+      - yum-versionlock
+    docker_version: 1.10.3
+    docker_device: /dev/xvdb
+  tasks:
+
+    - name: verify cloud init bootstrap is complete
+      command: grep finished /var/log/cloud-init.log
+      changed_when: False
+
+    - name: install prereq packages
+      yum: name="{{ item }}" state=present
+      with_items: "{{prereq_pkgs}}"
+
+    - name: enable ntpd
+      service: name=ntpd state=started enabled=yes
+
+
+    - name: remove current repository files
+      file: path=/etc/yum.repos.d/{{ item }} state=absent
+      with_items: repodircontents.stdout_lines
+
+    - name: create open.repo template on host
+      template: src=/etc/yum.repos.d/open.repo dest=/etc/yum.repos.d/open.repo
+
+    - name: remove current repositories
+      shell: "yum repolist"
+
+    - name: yum update the environment
+      shell: "yum update -y"
+
+    - name: install docker
+      yum: name="docker-{{ docker_version }}" state=present
+
+    - name: lock docker version
+      command: yum versionlock add "docker*"
+
+    - name: generate docker-storage-setup config
+      template: src=files/sysconfig.docker-storage-setup.j2 dest=/etc/sysconfig/docker-storage-setup
+
+    - name: start and enable docker
+      service: name=docker state=started enabled=yes
+
+    - name: update all packages
+      yum: name='*' state=latest update_cache=yes
