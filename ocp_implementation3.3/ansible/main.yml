@@ -40,3 +40,11 @@
           - NetworkManager-libnm
     - name: delete lv vg and pv
       shell: "vgremove -f docker-vg && pvremove -f /dev/vdb1"
+    - name: erase vdb partition table
+      shell: "parted -s /dev/vdb rm 1 &&  wipefs -a /dev/vdb"
+
+- name: Run Tasks for hosts group
+  hosts: hosts
+  vars_files:
+
+parted -s /dev/vdb rm 1
