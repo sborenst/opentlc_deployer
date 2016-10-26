@@ -47,4 +47,3 @@
   hosts: hosts
   vars_files:
 
-parted -s /dev/vdb rm 1
