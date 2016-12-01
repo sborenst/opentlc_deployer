@@ -52,7 +52,7 @@
     - debug: msg="guid fact is {{guid}}"
     - debug: msg="replpassword fact is {{replpassword}}"
 
-- debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
+    - debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
     - debug: msg="logging is {{install_logging}} metrics is {{install_metrics}} repo_version is {{repo_version}} "
     - name: install openshift utils
       yum: name="{{ item }}" state=present
