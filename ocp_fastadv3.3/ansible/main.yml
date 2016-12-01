@@ -59,9 +59,14 @@
           - atomic-openshift-clients
           - atomic-openshift-utils
           - atomic-openshift
+    
     - name: Get OPENSHIFT_RELEASE
       shell: "yum info atomic-openshift.x86_64 | grep Version | awk -F': ' '{print $2}'"
       register: openshiftrelease
+    - name: run a yum update
+      yum: 
+        name: "*"
+        state: latest
     - set_fact:
         osrelease: "{{openshiftrelease.stdout}}"
     - debug: msg="osrelease fact is {{osrelease}}"
