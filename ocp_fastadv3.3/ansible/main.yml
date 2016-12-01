@@ -51,7 +51,8 @@
         defpassword: "{{replpassword.stdout}}"
     - debug: msg="guid fact is {{guid}}"
     - debug: msg="replpassword fact is {{replpassword}}"
-    - debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
+
+- debug: msg="nfs is {{install_nfs}} dns is {{install_dns}} idm is {{install_idm}} "
     - debug: msg="logging is {{install_logging}} metrics is {{install_metrics}} repo_version is {{repo_version}} "
     - name: install openshift utils
       yum: name="{{ item }}" state=present
@@ -63,10 +64,6 @@
     - name: Get OPENSHIFT_RELEASE
       shell: "yum info atomic-openshift.x86_64 | grep Version | awk -F': ' '{print $2}'"
       register: openshiftrelease
-    - name: run a yum update
-      yum: 
-        name: "*"
-        state: latest
     - set_fact:
         osrelease: "{{openshiftrelease.stdout}}"
     - debug: msg="osrelease fact is {{osrelease}}"
