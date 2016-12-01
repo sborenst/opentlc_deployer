@@ -30,8 +30,8 @@
   tasks:
     - name: check all hosts are running docker
       shell: "systemctl status docker"
-    - name: Bad Image workaround 3.3.0.32 - will be removed
-      shell: "yum -y install python &&  yum -y remove docker-common-1.10.3-44.el7.x86_64 docker-1.10.3-44.el7.x86_64 docker-forward-journald-1.10.3-44.el7.x86_64 docker-rhel-push-plugin-1.10.3-44.el7.x86_64 docker-selinux-1.10.3-44.el7.x86_64"
+  #  - name: Bad Image workaround 3.3.0.32 - will be removed
+   #   shell: "yum -y install python &&  yum -y remove docker-common-1.10.3-44.el7.x86_64 docker-1.10.3-44.el7.x86_64 docker-forward-journald-1.10.3-44.el7.x86_64 docker-rhel-push-plugin-1.10.3-44.el7.x86_64 docker-selinux-1.10.3-44.el7.x86_64"
 
 
 - name: Configure Bastion Station
