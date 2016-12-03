@@ -111,6 +111,11 @@ API
     oc secrets new metrics-deployer nothing=/dev/null
     oc new-app openshift/metrics-deployer-template -p CASSANDRA_PV_SIZE=9Gi -p HAWKULAR_METRICS_HOSTNAME=metrics.cloudapps-${GUID}.${DOMAIN} -p USE_PERSISTENT_STORAGE=true -p IMAGE_VERSION=3.3.0 -p IMAGE_PREFIX=registry.access.redhat.com/openshift3/   2>&1 | tee -a $LOGFILE
     ansible masters -m shell -a "sed -i '/publicURL:/a \ \ metricsPublicURL: https://metrics.cloudapps-'${GUID}'.${DOMAIN}/hawkular/metrics'  /etc/origin/master/master-config.yaml"   2>&1 | tee -a $LOGFILE
+
+    # enable pipelines in 3.3
+    ansible masters -m shell -a "echo 'window.OPENSHIFT_CONSTANTS.ENABLE_TECH_PREVIEW_FEATURE.pipelines = true;' > /etc/origin/master/tech-preview.js"
+    ansible masters -m shell -a "sed -i 's/extensionScript.*/extensionScripts:\n  - \/etc\/origin\/master\/tech-preview.js/' /etc/origin/master/master-config.yaml"
+
     ssh master1.example.com "systemctl restart atomic-openshift-master"
     oc project default   2>&1 | tee -a $LOGFILE
 
